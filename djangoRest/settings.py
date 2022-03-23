@@ -57,7 +57,8 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'djangoRest.urls'
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:9000'
+    'http://localhost:9000',
+    'http://192.168.1.83:9000'
 ]
 
 TEMPLATES = [
