@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from main.models import User, Question, Answer, Score, Test, TestingSystem
 from main.serializers import UserSerializer, QuestionSerializer, AnswerSerializer, ScoreSerializer, TestSerializer, \
-    TestingSystemSerializer, UserExpandSerializer, TestExpandSerializer, QuestionExpandSerializer
+    TestingSystemSerializer, UserExpandSerializer, TestExpandSerializer, QuestionExpandSerializer, QuestionPassingSerializer
 
 
 class UserList(APIView):
@@ -66,13 +66,16 @@ class QuestionList(APIView):
     def get(self,request):
         test = request.GET.get("q_test_id")
         expand = request.GET.get("expand")
+        passing_expand = request.GET.get("passing_expand")
         questions = Question.objects.all()
         if test is not None:
             questions = questions.filter(q_test_id=test)
-        if expand is not None:
+        elif expand is not None:
             questions = questions.filter(q_parent_id=0)
             question_serializer = QuestionExpandSerializer(instance=questions, many=True)
-        else :
+        elif passing_expand is not None:
+            question_serializer = QuestionPassingSerializer(instance=questions, many=True)
+        else:
             question_serializer = QuestionSerializer(instance=questions, many=True)
         return Response(question_serializer.data)
     def post(self,request):
