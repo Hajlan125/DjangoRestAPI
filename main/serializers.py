@@ -37,6 +37,11 @@ class QuestionExpandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ['q_id', 'q_title', 'q_test_id','q_parent_id', 'q_chance', 'answers','children']
+class QuestionPassingSerializer(serializers.ModelSerializer):
+    answers = AnswerSerializer(many=True, read_only=True)
+    class Meta:
+        model = Question
+        fields = ['q_id', 'q_title', 'q_test_id','q_parent_id', 'q_chance', 'answers']
 
 class ScoreSerializer(serializers.ModelSerializer):
     class Meta:
