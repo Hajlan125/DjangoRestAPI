@@ -51,7 +51,7 @@ class Answer(models.Model):
     answ_question_id = models.ForeignKey(
         related_name="answers",
         to='Question',
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         db_column="answ_question_id"
     )
     is_correct = models.BooleanField(
@@ -71,7 +71,7 @@ class Question(models.Model):
     q_test_id =  models.ForeignKey(
         related_name="questions",
         to = 'Test',
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         db_column='q_test_id'
     )
     q_parent_id = models.ForeignKey(
@@ -81,7 +81,7 @@ class Question(models.Model):
         blank=True,
         default=0,
         db_column="q_parent_id",
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         verbose_name= "Предыдущий вопрос"
     )
     q_chance = models.IntegerField(
@@ -98,7 +98,7 @@ class Test(models.Model):
     test_creator = models.ForeignKey(
         to = 'user',
         related_name='created_tests',
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         db_column='test_creator',
         verbose_name="Создатель теста"
     )
