@@ -1,7 +1,7 @@
 from django.urls import path
 
 from main.views import UserList, UserDetail, ScoreList, ScoreDetail, TestList, TestDetail, AnswerList, AnswerDetail, \
-    QuestionList, QuestionDetail, TestingSystemList, TestingSystemDetail
+    QuestionList, QuestionDetail, TestingSystemList, TestingSystemDetail, ExampleAuthentication
 
 rest_api_patterns = ((
     path('user', UserList.as_view()),
@@ -16,4 +16,5 @@ rest_api_patterns = ((
     path('question/<int:pk>', QuestionDetail.as_view()),
     path('testing_system', TestingSystemList.as_view()),
     path('testing_system/<int:pk>', TestingSystemDetail.as_view()),
+    path('auth', ExampleAuthentication.as_view())
 ), 'djangoRest')
