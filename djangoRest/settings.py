@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'main.apps.MainConfig',
+    'django.contrib.sites'
 ]
 
 MIDDLEWARE = [
@@ -58,7 +59,9 @@ ROOT_URLCONF = 'djangoRest.urls'
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:9000',
-    'http://192.168.1.83:9000'
+    'http://192.168.1.83:9000',
+    'http://localhost:8000',
+    'http://localhost:5432',
 ]
 
 TEMPLATES = [
@@ -88,12 +91,19 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
+        'USER': 'postgres',
         'HOST': 'localhost',
         'PORT': '5432'
     }
 }
 
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
 
+    ]
+}
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
