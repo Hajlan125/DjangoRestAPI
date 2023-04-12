@@ -1,27 +1,76 @@
 from django.db import models
-from mptt.models import MPTTModel, TreeForeignKey
+from mptt.models import MPTTModel
+
+
+class ParallelBlock(models.Model):
+    p_b_id = models.BigAutoField(primary_key=True)
+    p_b_name = models.TextField(
+        default='Parallel Block',
+        db_column='p_b_name'
+    )
+    p_b_test_id = models.ForeignKey(
+        to="Test",
+        on_delete=models.CASCADE,
+        db_column="p_b_test_id"
+    )
+    class Meta:
+        managed=False
+        db_table='parallel_block'
+
+class UserType(models.Model):
+    type_u_id = models.BigAutoField(primary_key=True)
+    type_user = models.TextField(
+        db_column="type_user",
+        verbose_name="Тип пользователя"
+    )
+    access_level = models.IntegerField(
+        db_column="access_level",
+        verbose_name="Уровень доступа"
+    )
+    class Meta:
+        managed=False
+        db_table = 'type_u'
+
+
+class TestType(models.Model):
+    type_t_id = models.BigAutoField(primary_key=True)
+    type_test = models.TextField(
+        db_column='type_test',
+        verbose_name='Тип теста'
+    )
+    class Meta:
+        managed = False
+        db_table = 'type_test'
+
+
+class QuestionType(models.Model):
+    type_q_id = models.BigAutoField(primary_key=True)
+    type_q = models.TextField(
+        db_column="type_q",
+        verbose_name="Тип вопроса"
+    )
+    class Meta:
+        managed=False
+        db_table = 'type_q'
+
 
 class User(models.Model):
     user_id = models.BigAutoField(primary_key = True)
     user_name = models.TextField(
         db_column="user_name",
-        verbose_name="Имя"
-    )
-    user_type = models.TextField(
-        db_column="user_type",
-        verbose_name="Тип"
-    )
+        verbose_name="Имя")
     login = models.TextField(
         db_column="login",
-        verbose_name="Логин"
-    )
+        verbose_name="Логин")
     password = models.TextField(
         db_column="password",
-        verbose_name="Пароль"
-    )
-    create_test_permission = models.BooleanField(
-        db_column="create_test_permission",
-        verbose_name="Разрешение на создание теста"
+        verbose_name="Пароль")
+    user_type = models.ForeignKey(
+        related_name="user_type",
+        to="UserType",
+        default=2,
+        on_delete=models.SET_DEFAULT,
+        db_column="user_type"
     )
     class Meta:
         managed = False
@@ -29,17 +78,6 @@ class User(models.Model):
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
 
-class Score(models.Model):
-
-    score_id = models.BigAutoField(primary_key = True)
-
-    score_text = models.TextField(
-        db_column="score_text",
-        verbose_name="Оценка"
-    )
-    class Meta:
-        managed=False
-        db_table = 'score'
 
 class Answer(models.Model):
     answ_id  = models.BigAutoField(primary_key = True)
@@ -57,9 +95,14 @@ class Answer(models.Model):
     is_correct = models.BooleanField(
         db_column="is_correct"
     )
+    answ_comparison_text = models.TextField(
+        db_column='answ_comparison_text',
+        default=None
+    )
     class Meta:
         managed = False
         db_table = 'answer'
+
 
 class Question(models.Model):
     q_id = models.BigAutoField(primary_key = True)
@@ -84,13 +127,28 @@ class Question(models.Model):
         on_delete=models.CASCADE,
         verbose_name= "Предыдущий вопрос"
     )
-    q_chance = models.IntegerField(
-        db_column="q_chance",
-        verbose_name="Шанс"
+    q_connection_id = models.IntegerField(
+        default=0,
+        db_column='q_connection_id'
+    )
+    q_type = models.ForeignKey(
+        to='QuestionType',
+        default=1,
+        db_column='q_type',
+        on_delete=models.CASCADE
+    )
+    q_parallel_block_id = models.ForeignKey(
+        to='ParallelBlock',
+        on_delete=models.CASCADE,
+        default=None,
+        blank=True,
+        null=True,
+        db_column='q_parallel_block_id'
     )
     class Meta:
         managed=False
         db_table='question'
+
 
 class Test(models.Model):
     test_id = models.BigAutoField(primary_key=True)
@@ -114,14 +172,22 @@ class Test(models.Model):
         db_column="test_subject",
         verbose_name="Предмет"
     )
-    is_tree = models.BooleanField(
-        db_column="is_tree",
-        default=False,
-        verbose_name="Древовидность"
+    test_learning_material = models.TextField(
+        db_column="test_learning_material",
+        verbose_name="Учебный материал"
+    )
+    test_type = models.ForeignKey(
+        to='TestType',
+        # related_name='test_type',
+        db_column="test_type",
+        default=1,
+        verbose_name="Тип теста",
+        on_delete=models.SET_DEFAULT
     )
     class Meta:
         managed = False
         db_table = 'test'
+
 
 class TestingSystem(models.Model):
     ts_id = models.BigAutoField(primary_key = True)
@@ -129,12 +195,12 @@ class TestingSystem(models.Model):
     ts_user_id = models.ForeignKey(
         related_name="passed_tests",
         to='User',
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         db_column="ts_user_id"
     )
     ts_test_id = models.ForeignKey(
         Test,
-        models.DO_NOTHING,
+        models.CASCADE,
         db_column="ts_test_id"
     )
     ts_start_time = models.DateTimeField(
@@ -145,16 +211,12 @@ class TestingSystem(models.Model):
         db_column="ts_end_time",
         verbose_name="Дата окончания"
     )
-    ts_count_right_answers = models.IntegerField(
-        db_column="ts_count_right_answers",
-        verbose_name="Количество правильных ответов"
+    ts_score_percent = models.IntegerField(
+        db_column="ts_score_percent",
+        verbose_name="Процент правильных ответов"
     )
-    ts_score_id = models.ForeignKey(
-        Score,
-        models.DO_NOTHING,
-        db_column="ts_score_id",
-        verbose_name="Оценка"
-    )
+
     class Meta:
         managed = False
         db_table = 'testing_system'
+
