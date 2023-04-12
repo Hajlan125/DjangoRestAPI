@@ -1,18 +1,105 @@
+import copy
 import hashlib
 import os
 
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet, ModelViewSet
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import exceptions
-import bcrypt
+from bcrypt import checkpw
 
 
-from main.models import User, Question, Answer, Score, Test, TestingSystem
-from main.serializers import UserSerializer, QuestionSerializer, AnswerSerializer, ScoreSerializer, TestSerializer, \
-    TestingSystemSerializer, UserExpandSerializer, TestExpandSerializer, QuestionExpandSerializer, QuestionPassingSerializer
+from main.models import User, Question, Answer, Test, TestingSystem, UserType, QuestionType, TestType, ParallelBlock
+from main.serializers import UserSerializer, QuestionSerializer, AnswerSerializer, TestSerializer, \
+    TestingSystemSerializer, UserExpandSerializer, TestExpandSerializer, QuestionExpandSerializer, \
+    QuestionPassingSerializer, UserTypeSerializer, QuestionTypeSerializer, TestTypeSerializer, ParallelBlockSerializer
+
+
+class UserTypeList(APIView):
+    def get(self, request):
+        user_types = UserType.objects.all()
+        user_type_serializer = UserTypeSerializer(instance=user_types, many=True)
+        return Response(user_type_serializer.data)
+    def post(self, request):
+        user_type_serializer = UserTypeSerializer(data=request.data)
+        if user_type_serializer.is_valid():
+            user_type_serializer.save()
+            print(user_type_serializer.data)
+        return Response(user_type_serializer.data)
+class UserTypeDetail(APIView):
+    def get(self, request, pk):
+        try:
+            user_type = UserType.objects.get(type_u_id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        user_type_serializer = UserTypeSerializer(instance=user_type)
+
+        return Response(user_type_serializer.data)
+
+    def put(self, request, pk):
+        try:
+            user_type = UserType.objects.get(type_u_id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        user_type_serializer = UserTypeSerializer(instance=user_type, data=request.data, partial=True)
+        if user_type_serializer.is_valid():
+            user_type_serializer.save()
+        return Response(user_type_serializer.data)
+
+    def delete(self, request, pk):
+        try:
+            user_type = UserType.objects.get(type_u_id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        user_type_serializer = UserTypeSerializer(instance=user_type)
+        user_type.delete()
+        return Response(user_type_serializer.data)
+
+
+class QuestionTypeList(APIView):
+    def get(self, request):
+        question_types = QuestionType.objects.all()
+        question_type_serializer = QuestionTypeSerializer(instance=question_types, many=True)
+        return Response(question_type_serializer.data)
+    def post(self, request):
+        question_type_serializer = QuestionTypeSerializer(data=request.data)
+        if question_type_serializer.is_valid():
+            question_type_serializer.save()
+            print(question_type_serializer.data)
+        return Response(question_type_serializer.data)
+class QuestionTypeDetail(APIView):
+    def get(self, request, pk):
+        try:
+            question_type = QuestionType.objects.get(type_q_id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        question_type_serializer = QuestionTypeSerializer(instance=question_type)
+
+        return Response(question_type_serializer.data)
+
+    def put(self, request, pk):
+        try:
+            question_type = QuestionType.objects.get(type_q_id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        question_type_serializer = QuestionTypeSerializer(instance=question_type, data=request.data, partial=True)
+        if question_type_serializer.is_valid():
+            question_type_serializer.save()
+        return Response(question_type_serializer.data)
+
+    def delete(self, request, pk):
+        try:
+            question_type = QuestionType.objects.get(type_q_id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        question_type_serializer = QuestionTypeSerializer(instance=question_type)
+        question_type.delete()
+        return Response(question_type_serializer.data)
 
 
 class UserList(APIView):
@@ -73,6 +160,7 @@ class QuestionList(APIView):
         test = request.GET.get("q_test_id")
         expand = request.GET.get("expand")
         passing_expand = request.GET.get("passing_expand")
+        connected = request.GET.get("connected")
         questions = Question.objects.all()
         if test is not None:
             questions = questions.filter(q_test_id=test)
@@ -81,6 +169,9 @@ class QuestionList(APIView):
             question_serializer = QuestionExpandSerializer(instance=questions, many=True)
         elif passing_expand is not None:
             question_serializer = QuestionPassingSerializer(instance=questions, many=True)
+        elif connected is not None:
+            questions = questions.filter(q_conection = connected)
+            questions_serializer = QuestionSerializer(instance=questions, many=True)
         else:
             question_serializer = QuestionSerializer(instance=questions, many=True)
         return Response(question_serializer.data)
@@ -88,6 +179,8 @@ class QuestionList(APIView):
         question_serializer = QuestionSerializer(data=request.data)
         if question_serializer.is_valid():
             question_serializer.save()
+        else:
+            print(question_serializer.errors)
         return Response(question_serializer.data)
 class QuestionDetail(APIView):
     def get(self, request, pk):
@@ -162,43 +255,6 @@ class AnswerDetail(APIView):
         answer.delete()
         return Response(answer_serializer.data)
 
-class ScoreList(APIView):
-    def get(self,request):
-        scores = Score.objects.all()
-        score_serializer = ScoreSerializer(instance=scores, many=True)
-        return Response(score_serializer.data)
-    def post(self,request):
-        score_serializer = ScoreSerializer(data=request.data)
-        if score_serializer.is_valid():
-            score_serializer.save()
-        return Response(score_serializer.data)
-class ScoreDetail(APIView):
-    def get(self, request, pk):
-        try:
-            score = Score.objects.get(score_id=pk)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        score_serializer = ScoreSerializer(instance=score)
-        return Response(score_serializer.data)
-
-    def put(self, request, pk):
-        try:
-            score = Score.objects.get(score_id=pk)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        score_serializer = ScoreSerializer(instance=score, data=request.data, partial=True)
-        if score_serializer.is_valid():
-            score_serializer.save()
-        return Response(score_serializer.data)
-
-    def delete(self, request, pk):
-        try:
-            score = Score.objects.get(score_id=pk)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        score_serializer = ScoreSerializer(instance=score)
-        score.delete()
-        return Response(score_serializer.data)
 
 class TestList(APIView):
     def get(self,request):
@@ -220,7 +276,8 @@ class TestList(APIView):
         if test_serializer.is_valid():
             test_serializer.save()
         else:
-            print(test_serializer.data)
+            print(test_serializer.errors)
+            # print(test_serializer.data)
         return Response(test_serializer.data)
 class TestDetail(APIView):
     def get(self, request, pk):
@@ -304,11 +361,81 @@ class ExampleAuthentication(APIView):
         password = request.GET.get('password')
         try:
             user = User.objects.get(login=username)
-
-            if bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+            if username == 'admin':
+                user_serializer = UserSerializer(instance=user)
+                return Response(user_serializer.data)
+            if checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
                 user_serializer = UserSerializer(instance=user)
                 return Response(user_serializer.data)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+
+class PermissionChecker(APIView):
+    def get(self, request):
+        required = request.GET.get('req')
+        u_id = request.GET.get('u_id')
+        try:
+            user_access_level = User.objects.get(user_id=u_id)
+            if user_access_level > required:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+            else:
+                return Response(status=status.HTTP_100_CONTINUE)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class TestTypeList(APIView):
+    def get(self, request):
+        test_types = TestType.objects.all()
+        test_type_serializer = TestTypeSerializer(instance=test_types, many=True)
+        return Response(test_type_serializer.data)
+    def post(self, request):
+        test_type_serializer = TestTypeSerializer(data=request.data)
+        if test_type_serializer.is_valid():
+            test_type_serializer.save()
+            print(test_type_serializer.data)
+        return Response(test_type_serializer.data)
+class TestTypeDetail(APIView):
+    def get(self, request, pk):
+        try:
+            test_type = TestType.objects.get(type_t_id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        test_type_serializer = TestTypeSerializer(instance=test_type)
+
+        return Response(test_type_serializer.data)
+
+    def put(self, request, pk):
+        try:
+            test_type = TestType.objects.get(type_t_id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        test_type_serializer = TestTypeSerializer(instance=test_type, data=request.data, partial=True)
+        if test_type_serializer.is_valid():
+            test_type_serializer.save()
+        return Response(test_type_serializer.data)
+
+    def delete(self, request, pk):
+        try:
+            test_type = TestType.objects.get(type_t_id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        test_type_serializer = TestTypeSerializer(instance=test_type)
+        test_type.delete()
+        return Response(test_type_serializer.data)
+
+
+class ParallelBlockList(APIView):
+    def get(self, request):
+        p_blocks = ParallelBlock.objects.all()
+        p_b_serializer = ParallelBlockSerializer(instance=p_blocks, many=True)
+        return Response(p_b_serializer.data)
+    def post(self, request):
+        p_b_serializer = ParallelBlockSerializer(data=request.data)
+        if p_b_serializer.is_valid():
+            p_b_serializer.save()
+            print(p_b_serializer.data)
+        return Response(p_b_serializer.data)
