@@ -1,13 +1,14 @@
 from django.urls import path
 
-from main.views import UserList, UserDetail, ScoreList, ScoreDetail, TestList, TestDetail, AnswerList, AnswerDetail, \
+from main.views import TestList, TestDetail, AnswerList, AnswerDetail, \
     QuestionList, QuestionDetail, TestingSystemList, TestingSystemDetail, ExampleAuthentication
 
+from main.views1.user_view import UserList, UserDetail
+
+
 rest_api_patterns = ((
-    path('user', UserList.as_view()),
+    path('user', UserList.as_view(), name="user-list"),
     path('user/<int:pk>', UserDetail.as_view()),
-    path('score', ScoreList.as_view()),
-    path('score/<int:pk>', ScoreDetail.as_view()),
     path('test', TestList.as_view()),
     path('test/<int:pk>', TestDetail.as_view()),
     path('answer', AnswerList.as_view()),
