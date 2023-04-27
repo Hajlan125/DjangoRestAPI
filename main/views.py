@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from bcrypt import checkpw
 import openai
 import Levenshtein
-from dotenv import load_dotenv, dotenv_values,find_dotenv
 
 from main.models import User, Question, Answer, Test, TestingSystem, UserType, QuestionType, TestType, ParallelBlock
 from main.serializers import UserSerializer, QuestionSerializer, AnswerSerializer, TestSerializer, \
