@@ -18,9 +18,8 @@ from django.urls import path, include
 
 from main.views import UserList, UserDetail, TestList, TestDetail, AnswerList, AnswerDetail, \
     QuestionList, QuestionDetail, TestingSystemList, TestingSystemDetail, ExampleAuthentication, \
-    UserTypeList, UserTypeDetail, QuestionTypeList, QuestionTypeDetail, PermissionChecker,\
-    TestTypeList, TestTypeDetail, ParallelBlockList
-
+    UserTypeList, UserTypeDetail, QuestionTypeList, QuestionTypeDetail, PermissionChecker, \
+    TestTypeList, TestTypeDetail, ParallelBlockList, ParallelBlockDetail, UserAnswersValidation
 
 from main.urls import rest_api_patterns
 
@@ -43,6 +42,8 @@ urlpatterns = [
     path('perm_checker', PermissionChecker.as_view()),
     path('test_type', TestTypeList.as_view()),
     path('test_type/<int:pk>', TestTypeDetail.as_view()),
-    path('p_block', ParallelBlockList.as_view())
+    path('p_block', ParallelBlockList.as_view()),
+    path('p_block/<int:pk>', ParallelBlockDetail.as_view()),
+    path('validation', UserAnswersValidation.as_view())
 
 ]

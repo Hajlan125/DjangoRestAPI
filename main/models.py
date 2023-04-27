@@ -17,6 +17,7 @@ class ParallelBlock(models.Model):
         managed=False
         db_table='parallel_block'
 
+
 class UserType(models.Model):
     type_u_id = models.BigAutoField(primary_key=True)
     type_user = models.TextField(
@@ -97,7 +98,8 @@ class Answer(models.Model):
     )
     answ_comparison_text = models.TextField(
         db_column='answ_comparison_text',
-        default=None
+        default=None,
+        null=True
     )
     class Meta:
         managed = False
@@ -127,9 +129,10 @@ class Question(models.Model):
         on_delete=models.CASCADE,
         verbose_name= "Предыдущий вопрос"
     )
-    q_connection_id = models.IntegerField(
-        default=0,
-        db_column='q_connection_id'
+    q_exact_match = models.BooleanField(
+        default=None,
+        null=True,
+        db_column='q_exact_match'
     )
     q_type = models.ForeignKey(
         to='QuestionType',
@@ -174,7 +177,9 @@ class Test(models.Model):
     )
     test_learning_material = models.TextField(
         db_column="test_learning_material",
-        verbose_name="Учебный материал"
+        verbose_name="Учебный материал",
+        null=True,
+        blank=True
     )
     test_type = models.ForeignKey(
         to='TestType',
@@ -183,6 +188,11 @@ class Test(models.Model):
         default=1,
         verbose_name="Тип теста",
         on_delete=models.SET_DEFAULT
+    )
+    test_random_sort = models.BooleanField(
+        db_column="test_random_sort",
+        default=False,
+        null=models.SET_DEFAULT
     )
     class Meta:
         managed = False

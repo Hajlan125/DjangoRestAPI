@@ -36,24 +36,24 @@ class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ('q_id', 'q_title', 'q_test_id', 'q_parent_id', 'q_type',
-                  'q_connection_id', 'q_parallel_block_id')
+                  'q_exact_match', 'q_parallel_block_id')
 class RecursiveField(serializers.Serializer):
     def to_representation(self, value):
         serializer = self.parent.parent.__class__(value, context=self.context)
         return serializer.data
 class QuestionExpandSerializer(serializers.ModelSerializer):
-    answers = AnswerSerializer(many=True,read_only=True)
+    # answers = AnswerSerializer(many=True,read_only=True)
     children = RecursiveField(many=True, read_only=True, allow_null=True)
     class Meta:
         model = Question
         fields = ['q_id', 'q_title', 'q_test_id','q_parent_id',
-                  'q_type', 'q_connection_id', 'q_parallel_block_id', 'answers', 'children']
+                  'q_type', 'q_exact_match', 'q_parallel_block_id', 'children']
 class QuestionPassingSerializer(serializers.ModelSerializer):
     answers = AnswerSerializer(many=True, read_only=True)
     class Meta:
         model = Question
         fields = ['q_id', 'q_title', 'q_test_id','q_parent_id',
-                  'q_type', 'q_connection_id', 'q_parallel_block_id', 'answers']
+                  'q_type', 'q_exact_match', 'q_parallel_block_id', 'answers']
 
 
 class TestSerializer(serializers.ModelSerializer):
@@ -63,7 +63,7 @@ class TestSerializer(serializers.ModelSerializer):
         model = Test
         fields = ['test_id', 'test_creator',
                   'test_name', 'test_create_date',
-                  'test_subject','test_learning_material', 'test_type']
+                  'test_subject','test_learning_material', 'test_type', 'test_random_sort']
 class TestExpandSerializer(serializers.ModelSerializer):
     test_create_date = serializers.DateTimeField(required=False,
                                                  default=datetime.now(timezone.utc).astimezone())
@@ -71,12 +71,17 @@ class TestExpandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Test
         fields = ['test_id', 'test_creator',
-                  'test_name', 'test_create_date', 'questions']
+                  'test_name', 'test_create_date', 'test_random_sort', 'questions']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['user_id', 'user_name', 'user_type', 'login', 'password']
+class UserAuthSerializer(serializers.ModelSerializer):
+    level = serializers.IntegerField(source='user_type.access_level')
+    class Meta:
+        model = User
+        fields = ['user_id', 'user_name', 'user_type', 'level', 'login', 'password']
 
 class UserExpandSerializer(serializers.ModelSerializer):
     created_tests = TestSerializer(many=True, read_only=True)
