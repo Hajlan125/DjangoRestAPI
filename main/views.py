@@ -21,7 +21,7 @@ openai.api_key = os.getenv('OPEN_AI_KEY')
 
 def get_chat_gpt_response(user_answer, correct_answer):
     engine = 'text-davinci-003'
-    prompt = f'answer only 1 if the meaning more or less matches, 0 if the meaning does not match.' \
+    prompt = f'answer only 1 if the meaning more or less matches or its same sentence, 0 if the meaning does not match.'\
              f' Does the meaning of the following sentences coincide: "{user_answer}" and "{correct_answer}"'
 
     completion = openai.Completion.create(engine=engine,
@@ -553,9 +553,10 @@ class UserAnswersValidation(APIView):
 
             if q_type == opened:
                 correct_answers = [i.answ_text for i in answers.filter(answ_question_id=q_id)]
+                max_distance = len(correct_answers[0]) * 0.2
                 if q_exact_match:
                     typos = Levenshtein.distance(correct_answers[0], user_answer)
-                    if typos <= 5:
+                    if typos <= 5 and typos <= max_distance:
                         user_points += 1
                 else:
                     response = int(get_chat_gpt_response(user_answer, correct_answers[0]))
