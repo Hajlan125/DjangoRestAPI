@@ -73,12 +73,16 @@ class TestExpandSerializer(serializers.ModelSerializer):
         fields = ['test_id', 'test_creator',
                   'test_name', 'test_create_date', 'test_random_sort', 'questions']
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['user_id', 'user_name', 'user_type', 'login', 'password']
+
+
 class UserAuthSerializer(serializers.ModelSerializer):
     level = serializers.IntegerField(source='user_type.access_level')
+
     class Meta:
         model = User
         fields = ['user_id', 'user_name', 'user_type', 'level', 'login', 'password']

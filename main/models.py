@@ -56,7 +56,7 @@ class QuestionType(models.Model):
 
 
 class User(models.Model):
-    user_id = models.BigAutoField(primary_key = True)
+    user_id = models.BigAutoField(primary_key=True)
     user_name = models.TextField(
         db_column="user_name",
         verbose_name="Имя")
@@ -73,6 +73,7 @@ class User(models.Model):
         on_delete=models.SET_DEFAULT,
         db_column="user_type"
     )
+
     class Meta:
         managed = False
         db_table = "user"
@@ -115,19 +116,19 @@ class Question(models.Model):
     )
     q_test_id =  models.ForeignKey(
         related_name="questions",
-        to = 'Test',
+        to='Test',
         on_delete=models.CASCADE,
         db_column='q_test_id'
     )
     q_parent_id = models.ForeignKey(
         to='self',
         related_name="children",
-        null=True,
+        null=models.SET_DEFAULT,
         blank=True,
         default=0,
         db_column="q_parent_id",
         on_delete=models.CASCADE,
-        verbose_name= "Предыдущий вопрос"
+        verbose_name="Предыдущий вопрос"
     )
     q_exact_match = models.BooleanField(
         default=None,
